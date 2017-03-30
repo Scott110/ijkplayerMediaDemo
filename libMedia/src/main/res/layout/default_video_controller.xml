@@ -14,18 +14,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/centre_pause_iv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:background="@null"
-            android:scaleType="center"
-            android:src="@mipmap/icon_brightness"
-            android:visibility="gone" />
+        <include layout="@layout/include_controller_close" />
 
         <include
-            layout="@layout/include_forward_box"
+            layout="@layout/include_controller_forward_box"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true" />

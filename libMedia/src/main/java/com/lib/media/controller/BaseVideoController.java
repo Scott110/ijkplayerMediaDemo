@@ -27,12 +27,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.lib.media.PolicyCompat;
 import com.lib.media.R;
 import com.lib.media.ijkplayer.IjkVideoView;
+import com.lib.media.listener.CloseListener;
 import com.lib.media.listener.IMediaViewController;
 import com.lib.media.listener.LightListener;
 import com.lib.media.listener.OrientationListener;
@@ -71,6 +73,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private ImageButton mPauseButton;
     private ImageButton mFullScreenBtn;
     private LinearLayout llVolume, llLight, llForwardBox, llBottomController;
+    private RelativeLayout llClose;
     private ImageView mThumImg;
     private AppCompatTextView mForwardTxt;
     private AppCompatTextView mForwardTotalTxt;
@@ -129,6 +132,8 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private int mSeekTimePosition;
     private OrientationListener mlistener;
     private LightListener mLightListener;
+    private CloseListener mCloseListener;
+    private ImageButton mCloseBtn;
 
     public BaseVideoController(Context cxt, AttributeSet attrs) {
         super(cxt, attrs);
@@ -286,7 +291,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         removeAllViews();
         View v = makeControllerView();
         addView(v, frameParams);
-
         show(0);
     }
 
@@ -346,6 +350,12 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             mFullScreenBtn.setOnClickListener(mFullScreenListener);
         }
 
+        mCloseBtn = (ImageButton) v.findViewById(R.id.close_btn);
+        if (mCloseBtn != null) {
+            mCloseBtn.requestFocus();
+            mCloseBtn.setOnClickListener(mCloseBtnListener);
+        }
+
         mProgress = (SeekBar) v.findViewById(R.id.progress_sb);
         if (mProgress != null) {
             if (mProgress instanceof SeekBar) {
@@ -385,6 +395,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         llForwardBox = (LinearLayout) v.findViewById(R.id.ll_forward_box);
         llLight = (LinearLayout) v.findViewById(R.id.ll_light);
         llVolume = (LinearLayout) v.findViewById(R.id.ll_volume);
+        llClose = (RelativeLayout) v.findViewById(R.id.ll_close);
 
     }
 
@@ -458,6 +469,13 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             if (mPauseButton != null) {
                 mPauseButton.requestFocus();
             }
+            if (mCloseBtn != null) {
+                mCloseBtn.requestFocus();
+            }
+            if (mFullScreenBtn != null) {
+                mFullScreenBtn.requestFocus();
+            }
+
             disableUnsupportedButtons();
             updateFloatingWindowLayout();
             mWindowManager.addView(mDecor, mDecorLayoutParams);
@@ -587,6 +605,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
 
     //控制器Action_Down
     public void onControllerTouchDown(float x, float y) {
+        mHandler.removeMessages(FADE_OUT);
         show(0);
         mDownX = x;
         mDownY = y;
@@ -742,6 +761,15 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         }
     };
 
+
+    //关闭按钮监听
+    private final View.OnClickListener mCloseBtnListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            mCloseListener.closed();
+        }
+    };
+
     private void updatePausePlay() {
         if (mRoot == null || mPauseButton == null)
             return;
@@ -885,6 +913,10 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         mLightListener = listener;
     }
 
+    public void setCloseListener(CloseListener listener) {
+        mCloseListener = listener;
+    }
+
     //设置亮度
     public void setLight(float brightness) {
         this.mBrightness = brightness;
@@ -920,6 +952,11 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private void seekToPosition() {
         if (mPlayer == null) return;
         mPlayer.seekTo(mSeekTimePosition);
+        //如果是暂停状态转化为播放状态
+        if (!mPlayer.isPlaying()) {
+            mPlayer.start();
+            updatePausePlay();
+        }
     }
 
 

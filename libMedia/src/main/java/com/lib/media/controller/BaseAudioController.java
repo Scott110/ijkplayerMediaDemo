@@ -26,7 +26,7 @@ import android.widget.TextView;
 import com.lib.media.PolicyCompat;
 import com.lib.media.R;
 import com.lib.media.ijkplayer.IjkVideoView;
-import com.lib.media.widget.seekbar.VerticalSeekBar;
+import com.lib.media.listener.CloseListener;
 
 import java.util.Formatter;
 import java.util.Locale;
@@ -64,6 +64,7 @@ public class BaseAudioController extends FrameLayout {
     private AudioManager audioManager;
 
     private ImageButton closeBtn;
+    private CloseListener mCloseListener;
 
     public BaseAudioController(Context cxt, AttributeSet attrs) {
         super(cxt, attrs);
@@ -116,6 +117,7 @@ public class BaseAudioController extends FrameLayout {
         WindowManager.LayoutParams p = mDecorLayoutParams;
         p.gravity = Gravity.TOP | Gravity.LEFT;
         p.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        //p.height = 400;
         p.x = 0;
         p.format = PixelFormat.TRANSLUCENT;
         p.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
@@ -144,6 +146,18 @@ public class BaseAudioController extends FrameLayout {
         p.y = anchorPos[1] + mAnchor.getHeight() - mDecor.getMeasuredHeight();
     }
 
+
+    //更新控制面板高度
+    public void updateControllerLayoutParams() {
+        int controllHeight = (int) getResources().getDimension(R.dimen.default_audio_controller_bottom_height);
+        FrameLayout.LayoutParams frameParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, controllHeight);
+        View child = this.getChildAt(0);
+        if (child != null) {
+            child.setLayoutParams(frameParams);
+        }
+    }
+
     // This is called whenever mAnchor's layout bound changes
     private final View.OnLayoutChangeListener mLayoutChangeListener =
             new View.OnLayoutChangeListener() {
@@ -152,7 +166,7 @@ public class BaseAudioController extends FrameLayout {
                                            int bottom, int oldLeft, int oldTop, int oldRight,
                                            int oldBottom) {
                     Log.d(TAG, "onSurfaceChanged  onLayoutChange: ");
-                    //updateControllerLayoutParams();
+                    updateControllerLayoutParams();
                     updateFloatingWindowLayout();
                     if (mShowing) {
                         mWindowManager.updateViewLayout(mDecor, mDecorLayoutParams);
@@ -415,7 +429,7 @@ public class BaseAudioController extends FrameLayout {
 
     @Override
     public boolean onTrackballEvent(MotionEvent ev) {
-        show(sDefaultTimeout);
+        //show(sDefaultTimeout);
         return false;
     }
 
@@ -481,7 +495,7 @@ public class BaseAudioController extends FrameLayout {
     private final View.OnClickListener closeListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            mCloseListener.closed();
         }
     };
 
@@ -519,8 +533,8 @@ public class BaseAudioController extends FrameLayout {
     private final SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onStartTrackingTouch(SeekBar bar) {
-            show(3600000);
-            //show(0);
+            //show(3600000);
+            show(0);
             mDragging = true;
 
             // By removing these pending progress messages we make sure
@@ -551,8 +565,8 @@ public class BaseAudioController extends FrameLayout {
             mDragging = false;
             setProgress();
             updatePausePlay();
-            show(sDefaultTimeout);
-            //show(0);
+            //show(sDefaultTimeout);
+            show(0);
 
             // Ensure that progress is properly updated in the future,
             // the call to show() does not guarantee this because it is a
@@ -577,6 +591,11 @@ public class BaseAudioController extends FrameLayout {
     @Override
     public CharSequence getAccessibilityClassName() {
         return MediaController.class.getName();
+    }
+
+
+    public void setCloseListener(CloseListener listener) {
+        mCloseListener = listener;
     }
 
 }

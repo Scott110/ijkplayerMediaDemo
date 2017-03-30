@@ -19,7 +19,8 @@
         <com.lib.media.ijkplayer.IjkVideoView
             android:id="@+id/ijkPlayer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="#000000" />
     </FrameLayout>
 
     <!--<include
@@ -31,6 +32,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="获取播放截图"
+
+        />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/change_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="切换歌曲"
 
         />
 
