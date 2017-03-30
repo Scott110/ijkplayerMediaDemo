@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ll_volume"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_forward_box"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:visibility="gone">
+
+    <ImageView
+        android:id="@+id/volume_img"
+        style="@style/volume_light_img_style"
+        android:src="@mipmap/icon_voice" />
+
+    <com.lib.media.widget.seekbar.VerticalSeekBarWrapper
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/volume_light_skbar_height">
+
+        <com.lib.media.widget.seekbar.VerticalSeekBar
+            android:id="@+id/volume_skbar"
+            style="@style/Vertical_SeekBarStyle"
+            android:splitTrack="false" /> <!-- Rotation: CW90 or CW270 -->
+    </com.lib.media.widget.seekbar.VerticalSeekBarWrapper>
+
+
+</LinearLayout>

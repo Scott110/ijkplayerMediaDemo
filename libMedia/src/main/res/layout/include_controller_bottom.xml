@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bottom_contr_ll"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/default_video_controller_bottom_height"
+    android:layout_alignParentBottom="true"
+    android:background="@color/color_99000000"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    >
+
+    <ImageButton
+        android:id="@+id/play_pause_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:background="@null"
+        android:scaleType="center" />
+
+    <TextView
+        android:id="@+id/current_time_tv"
+        style="@style/controllerTimeTxtStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/time_txt_padding_dimen"
+        android:text="@string/zero_clock" />
+
+
+    <SeekBar
+        android:id="@+id/progress_sb"
+        style="@style/SeekBarStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1.0" />
+
+    <TextView
+        android:id="@+id/end_time_tv"
+        style="@style/controllerTimeTxtStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/time_txt_padding_dimen"
+        android:text="@string/zero_clock" />
+
+    <ImageButton
+        android:id="@+id/fullscreen_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="8dp"
+        android:background="@null"
+        android:scaleType="center"
+        android:src="@mipmap/icon_fullscreen_stretch" />
+</LinearLayout>
