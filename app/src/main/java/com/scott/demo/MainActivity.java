@@ -15,6 +15,7 @@ import android.view.View;
 
 import com.lib.media.constant.Constant;
 import com.lib.media.controller.AudioMediaController;
+import com.lib.media.controller.ImAudioMediaController;
 import com.lib.media.controller.VideoMediaController;
 import com.lib.media.ijkplayer.AndroidMediaController;
 import com.lib.media.ijkplayer.IjkVideoView;
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements LightListener, Or
     IjkVideoView videoView;
     VideoMediaController videoMediaController;
     AudioMediaController audioMediaController;
+    ImAudioMediaController imAudioMediaController;
     private AppCompatImageView img;
     LightUtil lightUtil;
     OrientationUtil orientationUtil;
@@ -60,12 +62,27 @@ public class MainActivity extends AppCompatActivity implements LightListener, Or
             }
         });
 
-        IjkMediaPlayer.loadLibrariesOnce(null);
-        IjkMediaPlayer.native_profileBegin("libijkplayer.so");
+        //IjkMediaPlayer.loadLibrariesOnce(null);
+        //IjkMediaPlayer.native_profileBegin("libijkplayer.so");
         videoView = (IjkVideoView) findViewById(R.id.ijkPlayer);
+
+        //initImAudio();
+        //initVideo();
+        initAudio();
+
+        //本地格式
+        //String url = "/storage/emulated/0/Download/test.h264";
+        //String url = "/storage/emulated/0/DCIM/Camera/haohao.mp4";
+
+        //videoView.setAspectRatio(1);
+        //videoView.setCanSeekBack(false);
+        //videoView.setCanSeekForward(false);
+        //videoView.start();
+    }
+
+
+    private void initVideo() {
         videoMediaController = new VideoMediaController(this);
-
-
         videoView.setMediaController(videoMediaController);
         lightUtil = new LightUtil(MainActivity.this, videoMediaController);
         orientationUtil = new OrientationUtil(MainActivity.this, videoMediaController);
@@ -73,22 +90,28 @@ public class MainActivity extends AppCompatActivity implements LightListener, Or
         videoMediaController.setWindowLightListener(this);
         videoMediaController.setCloseListener(this);
         String url = "http://cdn.course1.1dabang.cn/087/all/index.m3u8";
+        videoView.setVideoURI(Uri.parse(url));
+    }
 
+
+    private void initAudio() {
         audioMediaController = new AudioMediaController(this);
         audioMediaController.setCloseListener(this);
-        //videoView.setMediaController(audioMediaController);
-        //videoView.setMediaType(Constant.MEDIA_TYPE_AUDIO);
-        //String url = "http://o6wf52jln.bkt.clouddn.com/演员.mp3";
+        videoView.setMediaController(audioMediaController);
+        videoView.setMediaType(Constant.MEDIA_TYPE_AUDIO);
+        String url = "http://o6wf52jln.bkt.clouddn.com/演员.mp3";
         //String url = "http://medbigbang-1.oss-cn-beijing.aliyuncs.com/936523B4-361B-4D8A-B476-89249AA47743.amr";
-
-        //本地格式
-        //String url = "/storage/emulated/0/Download/test.h264";
-        //String url = "/storage/emulated/0/DCIM/Camera/haohao.mp4";
         videoView.setVideoURI(Uri.parse(url));
-        videoView.setAspectRatio(1);
-        //videoView.setCanSeekBack(false);
-        //videoView.setCanSeekForward(false);
-        //videoView.start();
+    }
+
+    private void initImAudio() {
+        imAudioMediaController = new ImAudioMediaController(this);
+        imAudioMediaController.setDuration(8000);
+        videoView.setMediaController(imAudioMediaController);
+        videoView.setMediaType(Constant.MEDIA_TYPE_IM_AUDIO);
+        String url = "http://o6wf52jln.bkt.clouddn.com/演员.mp3";
+        //String url = "http://medbigbang-1.oss-cn-beijing.aliyuncs.com/936523B4-361B-4D8A-B476-89249AA47743.amr";
+        videoView.setVideoURI(Uri.parse(url));
     }
 
 

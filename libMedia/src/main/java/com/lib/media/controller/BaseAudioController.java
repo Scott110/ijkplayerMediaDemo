@@ -25,7 +25,6 @@ import android.widget.TextView;
 
 import com.lib.media.PolicyCompat;
 import com.lib.media.R;
-import com.lib.media.ijkplayer.IjkVideoView;
 import com.lib.media.listener.CloseListener;
 
 import java.util.Formatter;
@@ -65,6 +64,7 @@ public class BaseAudioController extends FrameLayout {
 
     private ImageButton closeBtn;
     private CloseListener mCloseListener;
+    private int videoHeight;
 
     public BaseAudioController(Context cxt, AttributeSet attrs) {
         super(cxt, attrs);
@@ -149,9 +149,10 @@ public class BaseAudioController extends FrameLayout {
 
     //更新控制面板高度
     public void updateControllerLayoutParams() {
-        int controllHeight = (int) getResources().getDimension(R.dimen.default_audio_controller_bottom_height);
+        if (mAnchor == null) return;
+        videoHeight = mAnchor.getHeight();
         FrameLayout.LayoutParams frameParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, controllHeight);
+                ViewGroup.LayoutParams.MATCH_PARENT, videoHeight);
         View child = this.getChildAt(0);
         if (child != null) {
             child.setLayoutParams(frameParams);

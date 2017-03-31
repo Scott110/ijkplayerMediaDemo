@@ -3,6 +3,9 @@
     <dimen name="time_txt_padding_dimen">8dp</dimen>
     <dimen name="default_video_controller_bottom_height">45dp</dimen>
     <dimen name="default_audio_controller_bottom_height">64dp</dimen>
+    <dimen name="default_im_audio_controller_bottom_height">40dp</dimen>
+    <dimen name="default_im_audio_controller_min_width">161dp</dimen>
+    <dimen name="default_im_audio_bg_radius">4dp</dimen>
     <dimen name="volume_light_margin_left_right">15dp</dimen>
     <dimen name="volume_light_skbar_height">90dp</dimen>
 </resources>

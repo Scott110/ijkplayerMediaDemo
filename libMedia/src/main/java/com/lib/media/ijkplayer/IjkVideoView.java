@@ -34,10 +34,13 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 
+import com.lib.media.R;
 import com.lib.media.constant.Constant;
+import com.lib.media.util.ScreenUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -150,6 +153,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     private boolean usingDetchSufaceTextrueView = false;
     //多媒体类型
     private String mediaType = Constant.MEDIA_TYPE_VIDEO;
+    //音频时候的高度
+    private int audioVideoViewHeight;
 
 
     public IjkVideoView(Context context) {
@@ -176,7 +181,6 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     private void initVideoView(Context context) {
         mAppContext = context.getApplicationContext();
-        initBackground();
         initRenders();
         mVideoWidth = 0;
         mVideoHeight = 0;
@@ -185,7 +189,16 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         requestFocus();
         mCurrentState = STATE_IDLE;
         mTargetState = STATE_IDLE;
+    }
 
+
+    private void initAudioViewHeight() {
+        if (mediaType.equals(Constant.MEDIA_TYPE_AUDIO)) {
+            audioVideoViewHeight = (int) getResources().getDimension(R.dimen.default_audio_controller_bottom_height);
+
+        } else if (mediaType.equals(Constant.MEDIA_TYPE_IM_AUDIO)) {
+            audioVideoViewHeight = (int) getResources().getDimension(R.dimen.default_im_audio_controller_bottom_height);
+        }
     }
 
     /**
@@ -219,10 +232,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                 Gravity.CENTER);
         renderUIView.setLayoutParams(lp);
         addView(renderUIView);
-
         mRenderView.addRenderCallback(mSHCallback);
         mRenderView.setVideoRotation(mVideoRotationDegree);
-
 
     }
 
@@ -419,16 +430,13 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             mMediaController.hide();
         }
         mMediaController = controller;
-        attachMediaController();
     }
 
     private void attachMediaController() {
         if (mMediaPlayer != null && mMediaController != null) {
             mMediaController.setMediaPlayer(this);
-            View anchorView = this.getParent() instanceof View ?
-                    (View) this.getParent() : this;
             Log.d(TAG, "attachMediaController: " + mVideoHeight);
-            mMediaController.setAnchorView(anchorView);
+            mMediaController.setAnchorView(mRenderView.getView());
             mMediaController.setEnabled(isInPlaybackState());
         }
     }
@@ -440,7 +448,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     mVideoHeight = mp.getVideoHeight();
                     mVideoSarNum = mp.getVideoSarNum();
                     mVideoSarDen = mp.getVideoSarDen();
-                    Log.d(TAG, "attachMediaController111111: " + mVideoHeight);
+                    Log.d(TAG, "onVideoSizeChanged:------ " + mVideoHeight);
                     if (mVideoWidth != 0 && mVideoHeight != 0) {
                         if (mRenderView != null) {
                             mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
@@ -454,7 +462,6 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     IMediaPlayer.OnPreparedListener mPreparedListener = new IMediaPlayer.OnPreparedListener() {
         public void onPrepared(IMediaPlayer mp) {
-            Log.d(TAG, "onPrepared: 0000000000000000");
             mPrepareEndTime = System.currentTimeMillis();
             mCurrentState = STATE_PREPARED;
 
@@ -475,8 +482,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                 seekTo(seekToPosition);
             }
 
+            Log.d(TAG, "onPrepared video size" + mVideoWidth + "/" + mVideoHeight);
             if (mVideoWidth != 0 && mVideoHeight != 0) {
-                //Log.i("@@@@", "video size: " + mVideoWidth +"/"+ mVideoHeight);
                 // REMOVED: getHolder().setFixedSize(mVideoWidth, mVideoHeight);
                 if (mRenderView != null) {
                     mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
@@ -502,6 +509,13 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             } else {
                 // We don't know the video size yet, but should start anyway.
                 // The video size might be reported to us later.
+                //设置音频的高度
+                if (!mediaType.equals(Constant.MEDIA_TYPE_VIDEO)) {
+                    initAudioViewHeight();
+                    mRenderView.setVideoSize(ScreenUtil.getScreenWidth(getContext()), audioVideoViewHeight);
+                    mRenderView.setVideoSampleAspectRatio(mVideoSarNum, mVideoSarDen);
+                }
+
                 if (mTargetState == STATE_PLAYING) {
                     start();
                 }
@@ -515,7 +529,12 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     mCurrentState = STATE_PLAYBACK_COMPLETED;
                     mTargetState = STATE_PLAYBACK_COMPLETED;
                     if (mMediaController != null) {
-                        mMediaController.hide();
+                        //音频播放完不消失重置播放按钮
+                        if (mediaType == Constant.MEDIA_TYPE_VIDEO) {
+                            mMediaController.hide();
+                        } else {
+                            mMediaController.show(0);
+                        }
                     }
                     if (mOnCompletionListener != null) {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
@@ -775,7 +794,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (mediaType.equals(Constant.MEDIA_TYPE_AUDIO)) {
+        if (!mediaType.equals(Constant.MEDIA_TYPE_VIDEO)) {
             return false;
         }
         float x = ev.getX();

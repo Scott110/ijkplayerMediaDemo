@@ -13,12 +13,13 @@ import com.lib.media.ijkplayer.IMediaController;
  */
 
 public class VideoMediaController extends BaseVideoController implements IMediaController {
-    public VideoMediaController(Activity mActivity, AttributeSet attrs) {
-        super(mActivity, attrs);
+
+    public VideoMediaController(Context context, AttributeSet attrs) {
+        super(context, attrs);
     }
 
-    public VideoMediaController(Activity mActivity) {
-        super(mActivity);
+    public VideoMediaController(Context context) {
+        super(context);
     }
 
     @Override

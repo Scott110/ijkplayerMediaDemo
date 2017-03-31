@@ -1,14 +1,10 @@
 package com.lib.media.controller;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Settings;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -23,35 +19,26 @@ import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
-import android.widget.TextView;
 
 import com.lib.media.PolicyCompat;
 import com.lib.media.R;
-import com.lib.media.ijkplayer.IjkVideoView;
-import com.lib.media.listener.CloseListener;
-import com.lib.media.listener.IMediaViewController;
-import com.lib.media.listener.LightListener;
-import com.lib.media.listener.OrientationListener;
 import com.lib.media.util.ScreenUtil;
-import com.lib.media.widget.seekbar.VerticalSeekBar;
 
 import java.util.Formatter;
 import java.util.Locale;
 
 /**
  * author: heshantao
- * data: 2017/2/15.
- * 基础媒体控制器
+ * data: 2017/3/31.
+ * im 的音频控制器
  */
 
-public class BaseVideoController extends FrameLayout implements IMediaViewController {
-    private static final String TAG = BaseVideoController.class.getSimpleName();
+public class BaseImAudioController extends FrameLayout {
+    private static final String TAG = BaseAudioController.class.getSimpleName();
     private MediaController.MediaPlayerControl mPlayer;
     private View mAnchor;
     private View mRoot;
@@ -60,9 +47,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private View mDecor;
     private WindowManager.LayoutParams mDecorLayoutParams;
     private ProgressBar mProgress;
-    private VerticalSeekBar mVolumeProgress;
-    private VerticalSeekBar mBrightnessProgress;
-    private TextView mEndTime, mCurrentTime;
+    private AppCompatTextView mEndTime;
     private boolean mShowing;
     private boolean mDragging;
     private static final int sDefaultTimeout = 3000;
@@ -71,73 +56,16 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     StringBuilder mFormatBuilder;
     Formatter mFormatter;
     private ImageButton mPauseButton;
-    private ImageButton mFullScreenBtn;
-    private LinearLayout llVolume, llLight, llForwardBox, llBottomController;
-    private RelativeLayout llClose;
-    private ImageView mThumImg;
-    private AppCompatTextView mForwardTxt;
-    private AppCompatTextView mForwardTotalTxt;
     private AccessibilityManager mAccessibilityManager;
     private Context mActivity;
-    //屏幕方向
-    private int oritentionType = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-    //尽支持横屏
-    private boolean mOnlyFullScreen = false;
-    //是否是付费的
-    private boolean mIsCharge = false;
-    //最大播放时长(分钟)
-    private int mMaxPlayTime;
-    //当前亮度
-    private float mBrightness;
-    //当前音量
-    private int mVolume;
-    //当前播放进度
-    private int mPosition;
-    //最大音量
-    private int mMaxVolume;
-    //是否显示视频缩略图
-    private boolean mShowThumbnail;
-    /**
-     * 音频管理器
-     */
-    private AudioManager audioManager;
-    //是否可以通过手势滑动改变音量、亮度
-    private boolean mWidgetUsable = true;
-    //是否改变音量
-    private boolean mChangeVolumn = false;
-    //是否改变播放位置
-    private boolean mChangePosition = false;
-    //是否改变亮度
-    private boolean mChangeBrightness = false;
-    //触摸显示虚拟按键
-    protected boolean mShowVKey = false;
-    //触摸的X
-    protected float mDownX;
-    //触摸的Y
-    protected float mDownY;
-    //移动Y的距离
-    protected float mMoveY;
-    //手势偏差值
-    protected int mGestureOffset = 40;
-    //屏幕宽度
-    protected int mScreenWidth;
-    //屏幕高度
-    protected int mScreenHeight;
-    //手动滑动起始X轴偏移量(虚拟按键高度)
-    protected int mSlideXOffset;
-    //手动滑动起始Y轴偏移量(底部控制栏高度)
-    protected int mSlideYOffset;
-    private boolean mFirstTouch = false;
-    //需要进入的位置
-    private int mSeekTimePosition;
-    private OrientationListener mlistener;
-    private LightListener mLightListener;
-    private CloseListener mCloseListener;
-    private ImageButton mCloseBtn;
-    //视频高度
     private int videoHeight;
+    private int mDuration;
+    private LinearLayout mControll;
+    //最大时长
+    private int maxTime = 5 * 60 * 1000;
+    private ViewGroup.LayoutParams params;
 
-    public BaseVideoController(Context cxt, AttributeSet attrs) {
+    public BaseImAudioController(Context cxt, AttributeSet attrs) {
         super(cxt, attrs);
         mRoot = this;
         this.mActivity = cxt;
@@ -146,7 +74,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     }
 
 
-    public BaseVideoController(Context cxt) {
+    public BaseImAudioController(Context cxt) {
         super(cxt);
         this.mActivity = cxt;
         initFloatingWindowLayout();
@@ -157,11 +85,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
 
 
     private void init() {
-        audioManager = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
         mAccessibilityManager = (AccessibilityManager) mActivity.getSystemService(Context.ACCESSIBILITY_SERVICE);
-        mMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        initSlideOffset();
-
     }
 
 
@@ -191,6 +115,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         WindowManager.LayoutParams p = mDecorLayoutParams;
         p.gravity = Gravity.TOP | Gravity.LEFT;
         p.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        //p.height = 400;
         p.x = 0;
         p.format = PixelFormat.TRANSLUCENT;
         p.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
@@ -199,19 +124,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
                 | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
         p.token = null;
         p.windowAnimations = 0; // android.R.style.DropDownAnimationDown;
-    }
-
-
-    //旋转状态改变(横竖屏切换按钮、方向传感器)
-    public void onConfigurationChanged(final Configuration newConfig) {
-        oritentionType = newConfig.orientation;
-        Log.d(TAG, "onConfigurationChanged: ----" + oritentionType);
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                updateFullScreenBtn();
-            }
-        });
     }
 
 
@@ -230,6 +142,19 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         p.width = mAnchor.getWidth();
         p.x = anchorPos[0] + (mAnchor.getWidth() - p.width) / 2;
         p.y = anchorPos[1] + mAnchor.getHeight() - mDecor.getMeasuredHeight();
+    }
+
+
+    //更新控制面板高度
+    public void updateControllerLayoutParams() {
+        if (mAnchor == null) return;
+        videoHeight = mAnchor.getHeight();
+        FrameLayout.LayoutParams frameParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, videoHeight);
+        View child = this.getChildAt(0);
+        if (child != null) {
+            child.setLayoutParams(frameParams);
+        }
     }
 
     // This is called whenever mAnchor's layout bound changes
@@ -254,7 +179,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         public boolean onTouch(View v, MotionEvent event) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 if (mShowing) {
-                    hide();
+                    //hide();
                 }
             }
             return false;
@@ -297,20 +222,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     }
 
 
-    //更新控制面板高度
-    public void updateControllerLayoutParams() {
-        if (mAnchor == null) return;
-        videoHeight = mAnchor.getHeight();
-        Log.d(TAG, "updateControllerLayoutParams: +" + videoHeight);
-        FrameLayout.LayoutParams frameParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, videoHeight);
-        View child = this.getChildAt(0);
-        if (child != null) {
-            child.setLayoutParams(frameParams);
-        }
-    }
-
-
     @Override
     public void onFinishInflate() {
         if (mRoot != null)
@@ -332,7 +243,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     }
 
     public int getControllerLayoutId() {
-        return R.layout.default_video_controller;
+        return R.layout.default_im_audio_controller;
     }
 
     //初始化控制面板
@@ -343,17 +254,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             mPauseButton.setOnClickListener(mPauseListener);
         }
 
-        mFullScreenBtn = (ImageButton) v.findViewById(R.id.fullscreen_btn);
-        if (mFullScreenBtn != null) {
-            mFullScreenBtn.requestFocus();
-            mFullScreenBtn.setOnClickListener(mFullScreenListener);
-        }
-
-        mCloseBtn = (ImageButton) v.findViewById(R.id.close_btn);
-        if (mCloseBtn != null) {
-            mCloseBtn.requestFocus();
-            mCloseBtn.setOnClickListener(mCloseBtnListener);
-        }
 
         mProgress = (SeekBar) v.findViewById(R.id.progress_sb);
         if (mProgress != null) {
@@ -364,59 +264,29 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             mProgress.setMax(1000);
         }
 
-
-        mVolumeProgress = (VerticalSeekBar) v.findViewById(R.id.volume_skbar);
-        if (mVolumeProgress != null) {
-            if (mVolumeProgress instanceof SeekBar) {
-                SeekBar seeker = (SeekBar) mVolumeProgress;
-            }
-            mVolumeProgress.setMax(100);
-        }
-        initVolumn();
-
-        mBrightnessProgress = (VerticalSeekBar) v.findViewById(R.id.brightness_skbar);
-        if (mBrightnessProgress != null) {
-            if (mBrightnessProgress instanceof SeekBar) {
-                SeekBar seeker = (SeekBar) mBrightnessProgress;
-            }
-            mBrightnessProgress.setMax(100);
-        }
-
-        initBrightness();
-        mEndTime = (TextView) v.findViewById(R.id.end_time_tv);
-        mCurrentTime = (TextView) v.findViewById(R.id.current_time_tv);
-        mThumImg = (ImageView) v.findViewById(R.id.thum_img);
-        mForwardTxt = (AppCompatTextView) v.findViewById(R.id.txt_forward_time);
-        mForwardTotalTxt = (AppCompatTextView) v.findViewById(R.id.txt_forward_total_time);
+        mEndTime = (AppCompatTextView) v.findViewById(R.id.end_time_tv);
         mFormatBuilder = new StringBuilder();
         mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
-        llBottomController = (LinearLayout) v.findViewById(R.id.bottom_contr_ll);
-        llForwardBox = (LinearLayout) v.findViewById(R.id.ll_forward_box);
-        llLight = (LinearLayout) v.findViewById(R.id.ll_light);
-        llVolume = (LinearLayout) v.findViewById(R.id.ll_volume);
-        llClose = (RelativeLayout) v.findViewById(R.id.ll_close);
 
+        mControll = (LinearLayout) v.findViewById(R.id.ll_im_audio_controller);
+
+        setControllWidth();
     }
 
-    //初始化音量
-    private void initVolumn() {
-        mVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        mVolumeProgress.setProgress(mVolume * 100 / mMaxVolume);
-    }
-
-    //初始化亮度
-    public void initBrightness() {
-        try {
-            int e = Settings.System.getInt(mActivity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
-            float progress = 1.0F * (float) e / 255.0F;
-            mLightListener.initWindowLight();
-            mBrightnessProgress.setProgress((int) (progress * 100));
-            Log.d(TAG, "initBrightness: 亮度" + progress * 100);
-        } catch (Settings.SettingNotFoundException var7) {
-            var7.printStackTrace();
+    //根据时长设置controll 宽度
+    private void setControllWidth() {
+        float minWidth = getResources().getDimension(R.dimen.default_im_audio_controller_min_width);
+        int maxWidth = ScreenUtil.getScreenWidth(getContext()) - ScreenUtil.dip2px(getContext(), 60);
+        int screenWidth = ScreenUtil.getScreenWidth(getContext());
+        float controllWidth = mDuration * ((screenWidth - minWidth - ScreenUtil.dip2px(getContext(), 60)) / maxTime) + minWidth;
+        if (controllWidth > maxWidth) {
+            controllWidth = maxWidth;
         }
-
+        params = mControll.getLayoutParams();
+        params.width = (int) controllWidth;
+        mControll.setLayoutParams(params);
     }
+
 
     /**
      * Show the controller on screen. It will go away
@@ -462,19 +332,11 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
      *                the controller until hide() is called.
      */
     public void show(int timeout) {
-        Log.d(TAG, "show: ----------" + timeout + "----是否显示---" + mShowing);
         if (!mShowing && mAnchor != null) {
             setProgress();
             if (mPauseButton != null) {
                 mPauseButton.requestFocus();
             }
-            if (mCloseBtn != null) {
-                mCloseBtn.requestFocus();
-            }
-            if (mFullScreenBtn != null) {
-                mFullScreenBtn.requestFocus();
-            }
-
             disableUnsupportedButtons();
             updateFloatingWindowLayout();
             mWindowManager.addView(mDecor, mDecorLayoutParams);
@@ -546,8 +408,10 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         mFormatBuilder.setLength(0);
         if (hours > 0) {
             return mFormatter.format("%d:%02d:%02d", hours, minutes, seconds).toString();
-        } else {
+        } else if (minutes > 0) {
             return mFormatter.format("%02d:%02d", minutes, seconds).toString();
+        } else {
+            return mFormatter.format("%02d", seconds).toString();
         }
     }
 
@@ -557,6 +421,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         }
         int position = mPlayer.getCurrentPosition();
         int duration = mPlayer.getDuration();
+        Log.d(TAG, "setProgress: ------当前位置----" + position + "----总的时长---" + duration);
         if (mProgress != null) {
             if (duration > 0) {
                 // use long to avoid overflow
@@ -567,130 +432,20 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             mProgress.setSecondaryProgress(percent * 10);
         }
 
-        if (mEndTime != null)
+        if (mEndTime != null) {
+            //刚开始没连接时候通过外接获得总时长并且设置
+            if (duration < 0) {
+                duration = mDuration;
+            }
             mEndTime.setText(stringForTime(duration));
-        if (mCurrentTime != null)
-            mCurrentTime.setText(stringForTime(position));
+        }
 
         return position;
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        float x = event.getX();
-        float y = event.getY();
-
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                Log.d(TAG, "onTouchEvent: -----B----down-------");
-                onControllerTouchDown(x, y);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                Log.d(TAG, "onTouchEvent: -----B----move-------");
-                onControllerTouchMove(x, y);
-                break;
-            case MotionEvent.ACTION_UP:
-                Log.d(TAG, "onTouchEvent: -----B----up-------");
-                onControllerTouchUp();
-                break;
-            case MotionEvent.ACTION_CANCEL:
-                hide();
-                break;
-            default:
-                break;
-        }
-        return true;
-    }
-
-    //控制器Action_Down
-    public void onControllerTouchDown(float x, float y) {
-        mHandler.removeMessages(FADE_OUT);
-        show(0);
-        mDownX = x;
-        mDownY = y;
-        mMoveY = 0;
-        mChangeVolumn = false;
-        mChangePosition = false;
-        mShowVKey = false;
-        mChangeBrightness = false;
-        mFirstTouch = true;
-        llVolume.setVisibility(GONE);
-        llLight.setVisibility(GONE);
-        llForwardBox.setVisibility(GONE);
-    }
-
-
-    //控制器Action_Move
-    public void onControllerTouchMove(float x, float y) {
-        float deltaX = x - mDownX;
-        float deltaY = y - mDownY;
-        float absDeltaX = Math.abs(deltaX);
-        float absDeltaY = Math.abs(deltaY);
-        if (oritentionType != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT && mWidgetUsable) {
-            if (!mChangePosition && !mChangeVolumn && !mChangeBrightness) {
-                if (absDeltaX >= mGestureOffset) {
-                    //防止全屏虚拟按键
-                    mScreenWidth = ScreenUtil.getScreenWidth(getContext());
-                    if (Math.abs(mScreenWidth - mDownX) > mSlideXOffset) {
-                        if (mPlayer.canSeekBackward() && mPlayer.canSeekForward()) {
-                            mChangePosition = true;
-                            if (mFirstTouch) {
-                                mPosition = getCurrentPositionWhenPlaying();
-                                llForwardBox.setVisibility(VISIBLE);
-                                mFirstTouch = false;
-                            }
-                        }
-                    }
-                } else if (absDeltaY > mGestureOffset) {
-                    mScreenHeight = ScreenUtil.getScreenHeight(getContext());
-                    mScreenWidth = ScreenUtil.getScreenWidth(getContext());
-                    boolean noEnd = Math.abs(mScreenHeight - mDownY) > mSlideYOffset;
-                    mChangeBrightness = (mDownX < mScreenWidth * 0.5f) && noEnd;
-                    if (mChangeBrightness) {
-                        if (mFirstTouch) {
-                            mLightListener.getWindowLight();
-                            llLight.setVisibility(VISIBLE);
-                            mFirstTouch = false;
-                        }
-                    } else {
-                        mChangeVolumn = true;
-                        if (mFirstTouch) {
-                            mVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                            llVolume.setVisibility(VISIBLE);
-                            mFirstTouch = false;
-                        }
-                    }
-                }
-            }
-
-        }
-
-        if (mChangePosition) {
-            slideProgress(deltaX);
-        } else if (mChangeVolumn) {
-            slideVolume(-deltaY);
-        } else if (!mChangeVolumn && mChangeBrightness) {
-            slideLight(-deltaY);
-        }
-    }
-
-    //控制器Action_UP
-    public void onControllerTouchUp() {
-        llVolume.setVisibility(GONE);
-        llLight.setVisibility(GONE);
-        llForwardBox.setVisibility(GONE);
-        if (!mShowThumbnail) {
-            show(sDefaultTimeout);
-        }
-        if (mChangePosition) {
-            seekToPosition();
-            restForwardBox();
-        }
-    }
-
-    @Override
     public boolean onTrackballEvent(MotionEvent ev) {
-        show(sDefaultTimeout);
+        //show(sDefaultTimeout);
         return false;
     }
 
@@ -746,28 +501,12 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private final View.OnClickListener mPauseListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            disMissVedioThumbnail();
             doPauseResume();
-            show(sDefaultTimeout);
+            show(0);
+
         }
     };
 
-    //播放全屏监听
-    private final View.OnClickListener mFullScreenListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            toggleFullScreen();
-        }
-    };
-
-
-    //关闭按钮监听
-    private final View.OnClickListener mCloseBtnListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            mCloseListener.closed();
-        }
-    };
 
     private void updatePausePlay() {
         if (mRoot == null || mPauseButton == null)
@@ -803,8 +542,8 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private final SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onStartTrackingTouch(SeekBar bar) {
-            show(3600000);
-
+            //show(3600000);
+            show(0);
             mDragging = true;
 
             // By removing these pending progress messages we make sure
@@ -826,8 +565,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             long duration = mPlayer.getDuration();
             long newposition = (duration * progress) / 1000L;
             mPlayer.seekTo((int) newposition);
-            if (mCurrentTime != null)
-                mCurrentTime.setText(stringForTime((int) newposition));
         }
 
         @Override
@@ -835,7 +572,8 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             mDragging = false;
             setProgress();
             updatePausePlay();
-            show(sDefaultTimeout);
+            //show(sDefaultTimeout);
+            show(0);
 
             // Ensure that progress is properly updated in the future,
             // the call to show() does not guarantee this because it is a
@@ -862,176 +600,10 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         return MediaController.class.getName();
     }
 
-
-    /**
-     * 横屏、竖屏切换
-     */
-    public void toggleFullScreen() {
-        int orientation;
-        if (oritentionType == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-            orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-        } else {
-            orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-        }
-        mlistener.setScreenOrientation(orientation);
+    //从外部获得时长
+    public void setDuration(int duration) {
+        mDuration = duration;
     }
 
 
-    /**
-     * 更新全屏和半屏按钮
-     */
-    public void updateFullScreenBtn() {
-        if (oritentionType == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-            mFullScreenBtn.setImageResource(R.mipmap.icon_fullscreen_stretch);
-        } else {
-            mFullScreenBtn.setImageResource(R.mipmap.icon_fullscreen_shrink);
-        }
-    }
-
-
-    //设置是否仅支持横屏
-    public void setOnlyFullScreen(boolean bool) {
-        this.mOnlyFullScreen = bool;
-    }
-
-
-    public boolean getIsOnlyFullScreen() {
-        return mOnlyFullScreen;
-    }
-
-
-    public void setOritentionType(int type) {
-        this.oritentionType = type;
-    }
-
-    public void setOrientationListener(OrientationListener listener) {
-        mlistener = listener;
-    }
-
-    public void setWindowLightListener(LightListener listener) {
-        mLightListener = listener;
-    }
-
-    public void setCloseListener(CloseListener listener) {
-        mCloseListener = listener;
-    }
-
-    //设置亮度
-    public void setLight(float brightness) {
-        this.mBrightness = brightness;
-    }
-
-    //音量，亮度,快进控件是否可用
-    public void setVolumeLightForwardBoxWidgetUsable(boolean bol) {
-        this.mWidgetUsable = bol;
-    }
-
-
-    //初始化X,Y轴手势偏移量
-    public void initSlideOffset() {
-        int navBarHeight = ScreenUtil.getNavigationBarHeight(mActivity);
-        mSlideXOffset = navBarHeight;
-        mSlideYOffset = (int) mActivity.getResources().getDimension(R.dimen.default_video_controller_bottom_height);
-    }
-
-    /**
-     * 获取当前播放进度
-     */
-    public int getCurrentPositionWhenPlaying() {
-        if (mPlayer == null) {
-            return 0;
-        }
-        int position = mPlayer.getCurrentPosition();
-
-        return position;
-    }
-
-
-    //快进跳转到特定位置
-    private void seekToPosition() {
-        if (mPlayer == null) return;
-        mPlayer.seekTo(mSeekTimePosition);
-        //如果是暂停状态转化为播放状态
-        if (!mPlayer.isPlaying()) {
-            mPlayer.start();
-            updatePausePlay();
-        }
-    }
-
-
-    private void restForwardBox() {
-        mForwardTotalTxt.setText("00:00/00:00");
-        mForwardTxt.setText("0");
-    }
-
-
-    @Override
-    public void slideVolume(float deltaY) {
-        if (mAnchor == null) return;
-        float pecentVolume = 3 * deltaY / videoHeight;
-        int volume = (int) (pecentVolume * mMaxVolume) + mVolume;
-        if (volume > mMaxVolume)
-            volume = mMaxVolume;
-        else if (volume < 0)
-            volume = 0;
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
-        int seekPecent = volume * 100 / mMaxVolume;
-        mVolumeProgress.setProgress(seekPecent);
-    }
-
-    @Override
-    public void slideLight(float deltaY) {
-        if (mAnchor == null) return;
-        float pecentBrightness = 3 * deltaY / videoHeight;
-        pecentBrightness = mBrightness + pecentBrightness;
-        Log.d(TAG, "slideLight: 移动 " + mBrightness);
-        if (pecentBrightness > 1.0f) {
-            pecentBrightness = 1.0f;
-        } else if (pecentBrightness < 0.01f) {
-            pecentBrightness = 0.01f;
-        }
-
-        mLightListener.setWindowLight(pecentBrightness);
-        int seekPecent = (int) (pecentBrightness * 100);
-        mBrightnessProgress.setProgress(seekPecent);
-    }
-
-    @Override
-    public void slideProgress(float deltaX) {
-        if (mPlayer == null) return;
-        int duration = mPlayer.getDuration();
-        int forwardDuration = (int) (deltaX * duration / mScreenWidth / 10);
-        mSeekTimePosition = mPosition + forwardDuration;
-        if (mSeekTimePosition > duration)
-            mSeekTimePosition = duration;
-        String seekToTime = stringForTime(mSeekTimePosition);
-        String totalTime = stringForTime(duration);
-        String forwardStr = forwardDuration / 1000 % 60 + "秒";
-        forwardStr = deltaX > 0 ? "+" + forwardStr : "-" + forwardStr;
-        mForwardTxt.setText(forwardStr);
-        mForwardTotalTxt.setText(seekToTime + "/" + totalTime);
-    }
-
-    public void showVedioThumbnail(Bitmap bitmap) {
-        try {
-            if (!mPlayer.isPlaying() && bitmap != null
-                    && !bitmap.isRecycled()) {
-                mThumImg.setImageBitmap(bitmap);
-                mThumImg.setVisibility(VISIBLE);
-                mShowThumbnail = true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public boolean isShowThumbnail() {
-        return mShowThumbnail;
-    }
-
-    //隐藏封面图
-    public void disMissVedioThumbnail() {
-        mShowThumbnail = false;
-        mThumImg.setVisibility(GONE);
-    }
 }

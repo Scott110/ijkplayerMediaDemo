@@ -11,17 +11,13 @@
         android:layout_height="wrap_content"
         android:text="Hello World!" />
 
-    <FrameLayout
-        android:id="@+id/vedio_ll"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
-        <com.lib.media.ijkplayer.IjkVideoView
-            android:id="@+id/ijkPlayer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#000000" />
-    </FrameLayout>
+    <com.lib.media.ijkplayer.IjkVideoView
+        android:id="@+id/ijkPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#000000" />
+
 
     <!--<include
         layout="@layout/base_controller"
