@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.lib.media.PolicyCompat;
 import com.lib.media.R;
+import com.lib.media.ijkplayer.IjkVideoView;
 import com.lib.media.listener.CloseListener;
 
 import java.util.Formatter;
@@ -41,27 +42,15 @@ public class BaseAudioController extends FrameLayout {
     private MediaController.MediaPlayerControl mPlayer;
     private View mAnchor;
     private View mRoot;
-    private WindowManager mWindowManager;
-    private Window mWindow;
-    private View mDecor;
-    private WindowManager.LayoutParams mDecorLayoutParams;
     private ProgressBar mProgress;
     private TextView mEndTime, mCurrentTime;
     private boolean mShowing;
     private boolean mDragging;
-    private static final int sDefaultTimeout = 3000;
-    private static final int FADE_OUT = 1;
     private static final int SHOW_PROGRESS = 2;
     StringBuilder mFormatBuilder;
     Formatter mFormatter;
     private ImageButton mPauseButton;
-    private AccessibilityManager mAccessibilityManager;
     private Context mActivity;
-    /**
-     * 音频管理器
-     */
-    private AudioManager audioManager;
-
     private ImageButton closeBtn;
     private CloseListener mCloseListener;
     private int videoHeight;
@@ -70,87 +59,22 @@ public class BaseAudioController extends FrameLayout {
         super(cxt, attrs);
         mRoot = this;
         this.mActivity = cxt;
-        init();
 
     }
-
 
     public BaseAudioController(Context cxt) {
         super(cxt);
         this.mActivity = cxt;
-        initFloatingWindowLayout();
-        initFloatingWindow();
-        init();
-
-    }
-
-
-    private void init() {
-        audioManager = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
-        mAccessibilityManager = (AccessibilityManager) mActivity.getSystemService(Context.ACCESSIBILITY_SERVICE);
-    }
-
-
-    private void initFloatingWindow() {
-        mWindowManager = (WindowManager) mActivity.getSystemService(Context.WINDOW_SERVICE);
-        mWindow = PolicyCompat.createWindow(mActivity);
-        mWindow.setWindowManager(mWindowManager, null, null);
-        mWindow.requestFeature(Window.FEATURE_NO_TITLE);
-        mDecor = mWindow.getDecorView();
-        mDecor.setOnTouchListener(mTouchListener);
-        mWindow.setContentView(this);
-        mWindow.setBackgroundDrawableResource(android.R.color.transparent);
-        // While the media controller is up, the volume control keys should
-        // affect the media stream type
-        mWindow.setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-        setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-        requestFocus();
-    }
-
-    // Allocate and initialize the static parts of mDecorLayoutParams. Must
-    // also call updateFloatingWindowLayout() to fill in the dynamic parts
-    // (y and width) before mDecorLayoutParams can be used.
-    private void initFloatingWindowLayout() {
-        mDecorLayoutParams = new WindowManager.LayoutParams();
-        WindowManager.LayoutParams p = mDecorLayoutParams;
-        p.gravity = Gravity.TOP | Gravity.LEFT;
-        p.height = FrameLayout.LayoutParams.WRAP_CONTENT;
-        //p.height = 400;
-        p.x = 0;
-        p.format = PixelFormat.TRANSLUCENT;
-        p.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
-        p.flags |= WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
-                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
-        p.token = null;
-        p.windowAnimations = 0; // android.R.style.DropDownAnimationDown;
-    }
-
-
-    // Update the dynamic parts of mDecorLayoutParams
-    // Must be called with mAnchor != NULL.
-    private void updateFloatingWindowLayout() {
-        int[] anchorPos = new int[2];
-        mAnchor.getLocationOnScreen(anchorPos);
-
-        // we need to know the size of the controller so we can properly position it
-        // within its space
-        mDecor.measure(View.MeasureSpec.makeMeasureSpec(mAnchor.getWidth(), View.MeasureSpec.AT_MOST),
-                View.MeasureSpec.makeMeasureSpec(mAnchor.getHeight(), View.MeasureSpec.AT_MOST));
-
-        WindowManager.LayoutParams p = mDecorLayoutParams;
-        p.width = mAnchor.getWidth();
-        p.x = anchorPos[0] + (mAnchor.getWidth() - p.width) / 2;
-        p.y = anchorPos[1] + mAnchor.getHeight() - mDecor.getMeasuredHeight();
     }
 
 
     //更新控制面板高度
     public void updateControllerLayoutParams() {
         if (mAnchor == null) return;
-        videoHeight = mAnchor.getHeight();
+        View view = ((ViewGroup) mAnchor).getChildAt(0);
+        if (view instanceof IjkVideoView) {
+            videoHeight = view.getHeight();
+        }
         FrameLayout.LayoutParams frameParams = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, videoHeight);
         View child = this.getChildAt(0);
@@ -168,25 +92,9 @@ public class BaseAudioController extends FrameLayout {
                                            int oldBottom) {
                     Log.d(TAG, "onSurfaceChanged  onLayoutChange: ");
                     updateControllerLayoutParams();
-                    updateFloatingWindowLayout();
-                    if (mShowing) {
-                        mWindowManager.updateViewLayout(mDecor, mDecorLayoutParams);
-                    }
                 }
             };
 
-
-    private final View.OnTouchListener mTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                if (mShowing) {
-                    //hide();
-                }
-            }
-            return false;
-        }
-    };
 
     public void setMediaPlayer(MediaController.MediaPlayerControl player) {
         mPlayer = player;
@@ -220,7 +128,7 @@ public class BaseAudioController extends FrameLayout {
         removeAllViews();
         View v = makeControllerView();
         addView(v, frameParams);
-        show(0);
+        show();
     }
 
 
@@ -279,14 +187,6 @@ public class BaseAudioController extends FrameLayout {
 
 
     /**
-     * Show the controller on screen. It will go away
-     * automatically after 3 seconds of inactivity.
-     */
-    public void show() {
-        show(sDefaultTimeout);
-    }
-
-    /**
      * Disable pause or seek buttons if the stream cannot be paused or seeked.
      * This requires the control interface to be a MediaPlayerControlExt
      */
@@ -314,23 +214,16 @@ public class BaseAudioController extends FrameLayout {
         }
     }
 
-    /**
-     * Show the controller on screen. It will go away
-     * automatically after 'timeout' milliseconds of inactivity.
-     *
-     * @param timeout The timeout in milliseconds. Use 0 to show
-     *                the controller until hide() is called.
-     */
-    public void show(int timeout) {
-        Log.d(TAG, "show: ----------" + timeout + "----是否显示---" + mShowing);
+    public void show() {
         if (!mShowing && mAnchor != null) {
             setProgress();
             if (mPauseButton != null) {
                 mPauseButton.requestFocus();
             }
             disableUnsupportedButtons();
-            updateFloatingWindowLayout();
-            mWindowManager.addView(mDecor, mDecorLayoutParams);
+            if (mAnchor instanceof FrameLayout) {
+                ((FrameLayout) mAnchor).addView(this);
+            }
             mShowing = true;
         }
         updatePausePlay();
@@ -340,49 +233,26 @@ public class BaseAudioController extends FrameLayout {
         // paused with the progress bar showing the user hits play.
         mHandler.sendEmptyMessage(SHOW_PROGRESS);
 
-        if (timeout != 0 && !mAccessibilityManager.isTouchExplorationEnabled()) {
-            mHandler.removeMessages(FADE_OUT);
-            Message msg = mHandler.obtainMessage(FADE_OUT);
-            mHandler.sendMessageDelayed(msg, timeout);
-        }
     }
 
     public boolean isShowing() {
         return mShowing;
     }
 
-    /**
-     * Remove the controller from the screen.
-     */
-    public void hide() {
-        if (mAnchor == null)
-            return;
-
-        if (mShowing) {
-            try {
-                mHandler.removeMessages(SHOW_PROGRESS);
-                mWindowManager.removeView(mDecor);
-            } catch (IllegalArgumentException ex) {
-                Log.w("MediaController", "already removed");
-            }
-            mShowing = false;
-        }
-    }
 
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             int pos;
             switch (msg.what) {
-                case FADE_OUT:
-                    hide();
-                    break;
                 case SHOW_PROGRESS:
                     pos = setProgress();
                     if (!mDragging && mShowing && mPlayer.isPlaying()) {
                         msg = obtainMessage(SHOW_PROGRESS);
                         sendMessageDelayed(msg, 1000 - (pos % 1000));
                     }
+                    break;
+                default:
                     break;
             }
         }
@@ -430,7 +300,7 @@ public class BaseAudioController extends FrameLayout {
 
     @Override
     public boolean onTrackballEvent(MotionEvent ev) {
-        //show(sDefaultTimeout);
+        show();
         return false;
     }
 
@@ -444,7 +314,7 @@ public class BaseAudioController extends FrameLayout {
                 || keyCode == KeyEvent.KEYCODE_SPACE) {
             if (uniqueDown) {
                 doPauseResume();
-                show(sDefaultTimeout);
+                show();
                 if (mPauseButton != null) {
                     mPauseButton.requestFocus();
                 }
@@ -454,7 +324,7 @@ public class BaseAudioController extends FrameLayout {
             if (uniqueDown && !mPlayer.isPlaying()) {
                 mPlayer.start();
                 updatePausePlay();
-                show(sDefaultTimeout);
+                show();
             }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
@@ -462,7 +332,7 @@ public class BaseAudioController extends FrameLayout {
             if (uniqueDown && mPlayer.isPlaying()) {
                 mPlayer.pause();
                 updatePausePlay();
-                show(sDefaultTimeout);
+                show();
             }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
@@ -473,12 +343,12 @@ public class BaseAudioController extends FrameLayout {
             return super.dispatchKeyEvent(event);
         } else if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU) {
             if (uniqueDown) {
-                hide();
+
             }
             return true;
         }
 
-        show(sDefaultTimeout);
+        show();
         return super.dispatchKeyEvent(event);
     }
 
@@ -487,7 +357,7 @@ public class BaseAudioController extends FrameLayout {
         @Override
         public void onClick(View v) {
             doPauseResume();
-            show(0);
+            show();
 
         }
     };
@@ -535,7 +405,7 @@ public class BaseAudioController extends FrameLayout {
         @Override
         public void onStartTrackingTouch(SeekBar bar) {
             //show(3600000);
-            show(0);
+            show();
             mDragging = true;
 
             // By removing these pending progress messages we make sure
@@ -567,7 +437,7 @@ public class BaseAudioController extends FrameLayout {
             setProgress();
             updatePausePlay();
             //show(sDefaultTimeout);
-            show(0);
+            show();
 
             // Ensure that progress is properly updated in the future,
             // the call to show() does not guarantee this because it is a
@@ -589,10 +459,6 @@ public class BaseAudioController extends FrameLayout {
         super.setEnabled(enabled);
     }
 
-    @Override
-    public CharSequence getAccessibilityClassName() {
-        return MediaController.class.getName();
-    }
 
 
     public void setCloseListener(CloseListener listener) {

@@ -12,11 +12,16 @@
         android:text="Hello World!" />
 
 
-    <com.lib.media.ijkplayer.IjkVideoView
-        android:id="@+id/ijkPlayer"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#000000" />
+        android:layout_height="wrap_content">
+
+        <com.lib.media.ijkplayer.IjkVideoView
+            android:id="@+id/ijkPlayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#000000" />
+    </FrameLayout>
 
 
     <!--<include

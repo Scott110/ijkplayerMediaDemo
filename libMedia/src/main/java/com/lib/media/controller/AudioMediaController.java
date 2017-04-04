@@ -22,6 +22,17 @@ public class AudioMediaController extends BaseAudioController implements IMediaC
     public AudioMediaController(Context context) {
         super(context);
     }
+
+    @Override
+    public void hide() {
+
+    }
+
+    @Override
+    public void show(int timeout) {
+        show();
+    }
+
     @Override
     public void showOnce(View view) {
 
@@ -51,4 +62,6 @@ public class AudioMediaController extends BaseAudioController implements IMediaC
     public boolean isShowThumbnail() {
         return false;
     }
+
+
 }

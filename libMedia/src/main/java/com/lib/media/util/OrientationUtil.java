@@ -131,4 +131,13 @@ public class OrientationUtil {
         mActivity.setRequestedOrientation(orientation);
     }
 
+
+    public void restoreToNormal() {
+        int orientation;
+        if (getScreenOrientation(mActivity) != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+            orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+            setScreenOrientation(orientation);
+        }
+    }
+
 }

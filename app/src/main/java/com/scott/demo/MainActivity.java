@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity implements LightListener, Or
         videoView = (IjkVideoView) findViewById(R.id.ijkPlayer);
 
         //initImAudio();
-        //initVideo();
-        initAudio();
+        initVideo();
+        //initAudio();
 
         //本地格式
         //String url = "/storage/emulated/0/Download/test.h264";
@@ -158,5 +158,13 @@ public class MainActivity extends AppCompatActivity implements LightListener, Or
     @Override
     public void closed() {
         videoView.release(true);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        Log.d("TAG", "onBackPressed: 返回键111111");
+        orientationUtil.restoreToNormal();
+        //super.onBackPressed();
     }
 }

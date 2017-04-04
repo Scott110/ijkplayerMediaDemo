@@ -436,7 +436,9 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         if (mMediaPlayer != null && mMediaController != null) {
             mMediaController.setMediaPlayer(this);
             Log.d(TAG, "attachMediaController: " + mVideoHeight);
-            mMediaController.setAnchorView(mRenderView.getView());
+            View anchorView = this.getParent() instanceof View ?
+                    (View) this.getParent() : this;
+            mMediaController.setAnchorView(anchorView);
             mMediaController.setEnabled(isInPlaybackState());
         }
     }
@@ -529,12 +531,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     mCurrentState = STATE_PLAYBACK_COMPLETED;
                     mTargetState = STATE_PLAYBACK_COMPLETED;
                     if (mMediaController != null) {
-                        //音频播放完不消失重置播放按钮
-                        if (mediaType == Constant.MEDIA_TYPE_VIDEO) {
-                            mMediaController.hide();
-                        } else {
-                            mMediaController.show(0);
-                        }
+                        mMediaController.hide();
                     }
                     if (mOnCompletionListener != null) {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
@@ -825,13 +822,13 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        boolean isKeyCodeSupported = keyCode != KeyEvent.KEYCODE_BACK &&
+        boolean isKeyCodeSupported =keyCode != KeyEvent.KEYCODE_BACK &&
                 keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
-                keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
-                keyCode != KeyEvent.KEYCODE_VOLUME_MUTE &&
-                keyCode != KeyEvent.KEYCODE_MENU &&
-                keyCode != KeyEvent.KEYCODE_CALL &&
-                keyCode != KeyEvent.KEYCODE_ENDCALL;
+                        keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
+                        keyCode != KeyEvent.KEYCODE_VOLUME_MUTE &&
+                        keyCode != KeyEvent.KEYCODE_MENU &&
+                        keyCode != KeyEvent.KEYCODE_CALL &&
+                        keyCode != KeyEvent.KEYCODE_ENDCALL;
         if (isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
             if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
                     keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
@@ -915,8 +912,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     public void onResume() {
         if (mediaType.equals(Constant.MEDIA_TYPE_VIDEO)) {
             mMediaController.showVedioThumbnail(pauseCoverBmp);
-            mMediaController.show(0);
         }
+        mMediaController.show(0);
     }
 
     @Override
@@ -1209,82 +1206,4 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         mediaType = type;
     }
 
-
-
-
-   /* public boolean isBackgroundPlayEnabled() {
-        return mEnableBackgroundPlay;
-    }
-
-    public void enterBackground() {
-        MediaPlayerService.setMediaPlayer(mMediaPlayer);
-    }
-
-    public void stopBackgroundPlay() {
-        MediaPlayerService.setMediaPlayer(null);
-    }
-
-    //-------------------------
-    // Extend: Background
-    //-------------------------
-
-
-    private String buildResolution(int width, int height, int sarNum, int sarDen) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(width);
-        sb.append(" x ");
-        sb.append(height);
-
-        if (sarNum > 1 || sarDen > 1) {
-            sb.append("[");
-            sb.append(sarNum);
-            sb.append(":");
-            sb.append(sarDen);
-            sb.append("]");
-        }
-
-        return sb.toString();
-    }
-
-    private String buildTimeMilli(long duration) {
-        long total_seconds = duration / 1000;
-        long hours = total_seconds / 3600;
-        long minutes = (total_seconds % 3600) / 60;
-        long seconds = total_seconds % 60;
-        if (duration <= 0) {
-            return "--:--";
-        }
-        if (hours >= 100) {
-            return String.format(Locale.US, "%d:%02d:%02d", hours, minutes, seconds);
-        } else if (hours > 0) {
-            return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds);
-        } else {
-            return String.format(Locale.US, "%02d:%02d", minutes, seconds);
-        }
-    }
-
-    private String buildLanguage(String language) {
-        if (TextUtils.isEmpty(language))
-            return "und";
-        return language;
-    }
-
-    public ITrackInfo[] getTrackInfo() {
-        if (mMediaPlayer == null)
-            return null;
-
-        return mMediaPlayer.getTrackInfo();
-    }
-
-    public void selectTrack(int stream) {
-        MediaPlayerCompat.selectTrack(mMediaPlayer, stream);
-    }
-
-    public void deselectTrack(int stream) {
-        MediaPlayerCompat.deselectTrack(mMediaPlayer, stream);
-    }
-
-    public int getSelectedTrack(int trackType) {
-        return MediaPlayerCompat.getSelectedTrack(mMediaPlayer, trackType);
-    }*/
 }

@@ -300,7 +300,10 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     //更新控制面板高度
     public void updateControllerLayoutParams() {
         if (mAnchor == null) return;
-        videoHeight = mAnchor.getHeight();
+        View view = ((ViewGroup) mAnchor).getChildAt(0);
+        if (view instanceof IjkVideoView) {
+            videoHeight = view.getHeight();
+        }
         Log.d(TAG, "updateControllerLayoutParams: +" + videoHeight);
         FrameLayout.LayoutParams frameParams = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, videoHeight);
@@ -1034,4 +1037,5 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         mShowThumbnail = false;
         mThumImg.setVisibility(GONE);
     }
+
 }

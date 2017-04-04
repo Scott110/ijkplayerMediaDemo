@@ -51,4 +51,16 @@ public class ImAudioMediaController extends BaseImAudioController implements IMe
     public boolean isShowThumbnail() {
         return false;
     }
+
+
+
+    @Override
+    public void hide() {
+
+    }
+
+    @Override
+    public void show(int timeout) {
+        show();
+    }
 }

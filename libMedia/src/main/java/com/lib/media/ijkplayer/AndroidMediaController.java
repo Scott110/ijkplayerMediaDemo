@@ -108,4 +108,6 @@ public class AndroidMediaController extends MediaController implements IMediaCon
     public boolean isShowThumbnail() {
         return false;
     }
+
+
 }
