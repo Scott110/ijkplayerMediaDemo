@@ -23,10 +23,7 @@ public class AudioMediaController extends BaseAudioController implements IMediaC
         super(context);
     }
 
-    @Override
-    public void hide() {
 
-    }
 
     @Override
     public void show(int timeout) {
@@ -61,6 +58,11 @@ public class AudioMediaController extends BaseAudioController implements IMediaC
     @Override
     public boolean isShowThumbnail() {
         return false;
+    }
+
+    @Override
+    public void isBuffering(boolean bol) {
+
     }
 
 

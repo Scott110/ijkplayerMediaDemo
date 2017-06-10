@@ -1,6 +1,5 @@
 package com.lib.media.controller;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
@@ -52,6 +51,10 @@ public class ImAudioMediaController extends BaseImAudioController implements IMe
         return false;
     }
 
+    @Override
+    public void isBuffering(boolean bol) {
+
+    }
 
 
     @Override

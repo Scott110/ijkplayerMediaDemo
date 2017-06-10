@@ -109,5 +109,10 @@ public class AndroidMediaController extends MediaController implements IMediaCon
         return false;
     }
 
+    @Override
+    public void isBuffering(boolean bol) {
+
+    }
+
 
 }

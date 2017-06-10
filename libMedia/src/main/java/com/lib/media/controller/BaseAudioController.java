@@ -1,21 +1,15 @@
 package com.lib.media.controller;
 
 import android.content.Context;
-import android.graphics.PixelFormat;
-import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.accessibility.AccessibilityManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.MediaController;
@@ -23,10 +17,9 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.lib.media.PolicyCompat;
 import com.lib.media.R;
 import com.lib.media.ijkplayer.IjkVideoView;
-import com.lib.media.listener.CloseListener;
+import com.lib.media.listener.ICloseListener;
 
 import java.util.Formatter;
 import java.util.Locale;
@@ -52,7 +45,7 @@ public class BaseAudioController extends FrameLayout {
     private ImageButton mPauseButton;
     private Context mActivity;
     private ImageButton closeBtn;
-    private CloseListener mCloseListener;
+    private ICloseListener mCloseListener;
     private int videoHeight;
 
     public BaseAudioController(Context cxt, AttributeSet attrs) {
@@ -239,6 +232,12 @@ public class BaseAudioController extends FrameLayout {
         return mShowing;
     }
 
+    //当播放完成调用
+    public void hide() {
+        updatePausePlay();
+        mHandler.removeMessages(SHOW_PROGRESS);
+    }
+
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -247,7 +246,7 @@ public class BaseAudioController extends FrameLayout {
             switch (msg.what) {
                 case SHOW_PROGRESS:
                     pos = setProgress();
-                    if (!mDragging && mShowing && mPlayer.isPlaying()) {
+                    if (!mDragging && mShowing /*&& mPlayer.isPlaying()*/) {
                         msg = obtainMessage(SHOW_PROGRESS);
                         sendMessageDelayed(msg, 1000 - (pos % 1000));
                     }
@@ -460,8 +459,7 @@ public class BaseAudioController extends FrameLayout {
     }
 
 
-
-    public void setCloseListener(CloseListener listener) {
+    public void setCloseListener(ICloseListener listener) {
         mCloseListener = listener;
     }
 

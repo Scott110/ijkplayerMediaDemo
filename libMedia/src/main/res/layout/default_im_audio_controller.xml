@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/ll_im_audio_root"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/default_im_audio_controller_bottom_height"
+    android:layout_height="@dimen/default_im_audio_height"
     android:background="#F3F3F3"
     android:gravity="center_vertical"
     android:orientation="horizontal">

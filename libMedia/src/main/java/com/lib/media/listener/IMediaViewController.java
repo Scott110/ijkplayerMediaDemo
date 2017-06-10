@@ -1,7 +1,5 @@
 package com.lib.media.listener;
 
-import android.graphics.Bitmap;
-
 /**
  * author: heshantao
  * data: 2017/3/21.

@@ -52,4 +52,7 @@ public interface IMediaController {
 
     //是否显示了封面缩略图
     boolean isShowThumbnail();
+
+    //设置是否在缓冲中
+    void isBuffering(boolean bol);
 }

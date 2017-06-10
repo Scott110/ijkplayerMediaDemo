@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/color_black">
+
+    <ImageButton
+        android:id="@+id/close_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="11dp"
+        android:layout_marginTop="11dp"
+        android:background="@null"
+        android:scaleType="center"
+        android:src="@mipmap/icon_vedio_close" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/txt_charg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:text="@string/charge_hint"
+        android:textColor="@color/color_white" />
+
+
+</RelativeLayout>

@@ -2,13 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/ll_light"
-    android:layout_width="wrap_content"
+    android:layout_width="40dp"
     android:layout_height="wrap_content"
-    android:gravity="center_horizontal"
     android:background="@drawable/bg_forward_box"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:visibility="gone"
-    >
+    android:visibility="gone">
+
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="15dp" />
 
 
     <ImageView
@@ -16,6 +19,9 @@
         style="@style/volume_light_img_style"
         android:src="@mipmap/icon_brightness" />
 
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="10dp" />
 
     <com.lib.media.widget.seekbar.VerticalSeekBarWrapper
         android:layout_width="wrap_content"
@@ -24,9 +30,11 @@
         <com.lib.media.widget.seekbar.VerticalSeekBar
             android:id="@+id/brightness_skbar"
             style="@style/Vertical_SeekBarStyle"
-            android:splitTrack="false"
-             /> <!-- Rotation: CW90 or CW270 -->
+            android:splitTrack="false" /> <!-- Rotation: CW90 or CW270 -->
     </com.lib.media.widget.seekbar.VerticalSeekBarWrapper>
 
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="15dp" />
 
 </LinearLayout>

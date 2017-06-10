@@ -1,22 +1,16 @@
 package com.lib.media.controller;
 
 import android.content.Context;
-import android.graphics.PixelFormat;
-import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.accessibility.AccessibilityManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -24,7 +18,6 @@ import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 
-import com.lib.media.PolicyCompat;
 import com.lib.media.R;
 import com.lib.media.ijkplayer.IjkVideoView;
 import com.lib.media.util.ScreenUtil;

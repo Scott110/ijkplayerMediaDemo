@@ -4,7 +4,7 @@
     android:id="@+id/ll_close"
     android:layout_width="match_parent"
     android:layout_height="@dimen/default_video_controller_bottom_height"
-    android:background="@color/color_99000000"
+    android:background="@color/color_4c000000"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
@@ -16,7 +16,7 @@
         android:layout_marginRight="11dp"
         android:background="@null"
         android:scaleType="center"
-        android:src="@mipmap/ic_close" />
+        android:src="@mipmap/icon_vedio_close" />
 
 
 </RelativeLayout>

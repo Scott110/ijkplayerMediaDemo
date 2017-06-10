@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
@@ -12,14 +11,11 @@ import android.provider.Settings;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -31,13 +27,12 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.lib.media.PolicyCompat;
 import com.lib.media.R;
 import com.lib.media.ijkplayer.IjkVideoView;
-import com.lib.media.listener.CloseListener;
+import com.lib.media.listener.ICloseListener;
+import com.lib.media.listener.ILightListener;
 import com.lib.media.listener.IMediaViewController;
-import com.lib.media.listener.LightListener;
-import com.lib.media.listener.OrientationListener;
+import com.lib.media.listener.IOrientationListener;
 import com.lib.media.util.ScreenUtil;
 import com.lib.media.widget.seekbar.VerticalSeekBar;
 
@@ -55,10 +50,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private MediaController.MediaPlayerControl mPlayer;
     private View mAnchor;
     private View mRoot;
-    private WindowManager mWindowManager;
-    private Window mWindow;
-    private View mDecor;
-    private WindowManager.LayoutParams mDecorLayoutParams;
     private ProgressBar mProgress;
     private VerticalSeekBar mVolumeProgress;
     private VerticalSeekBar mBrightnessProgress;
@@ -83,10 +74,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private int oritentionType = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
     //尽支持横屏
     private boolean mOnlyFullScreen = false;
-    //是否是付费的
-    private boolean mIsCharge = false;
-    //最大播放时长(分钟)
-    private int mMaxPlayTime;
     //当前亮度
     private float mBrightness;
     //当前音量
@@ -130,12 +117,13 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     private boolean mFirstTouch = false;
     //需要进入的位置
     private int mSeekTimePosition;
-    private OrientationListener mlistener;
-    private LightListener mLightListener;
-    private CloseListener mCloseListener;
+    private IOrientationListener mlistener;
+    private ILightListener mLightListener;
+    private ICloseListener mCloseListener;
     private ImageButton mCloseBtn;
     //视频高度
     private int videoHeight;
+    private LinearLayout mBufferLoading;
 
     public BaseVideoController(Context cxt, AttributeSet attrs) {
         super(cxt, attrs);
@@ -149,8 +137,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     public BaseVideoController(Context cxt) {
         super(cxt);
         this.mActivity = cxt;
-        initFloatingWindowLayout();
-        initFloatingWindow();
         init();
 
     }
@@ -162,43 +148,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         mMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         initSlideOffset();
 
-    }
-
-
-    private void initFloatingWindow() {
-        mWindowManager = (WindowManager) mActivity.getSystemService(Context.WINDOW_SERVICE);
-        mWindow = PolicyCompat.createWindow(mActivity);
-        mWindow.setWindowManager(mWindowManager, null, null);
-        mWindow.requestFeature(Window.FEATURE_NO_TITLE);
-        mDecor = mWindow.getDecorView();
-        mDecor.setOnTouchListener(mTouchListener);
-        mWindow.setContentView(this);
-        mWindow.setBackgroundDrawableResource(android.R.color.transparent);
-        // While the media controller is up, the volume control keys should
-        // affect the media stream type
-        mWindow.setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-        setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-        requestFocus();
-    }
-
-    // Allocate and initialize the static parts of mDecorLayoutParams. Must
-    // also call updateFloatingWindowLayout() to fill in the dynamic parts
-    // (y and width) before mDecorLayoutParams can be used.
-    private void initFloatingWindowLayout() {
-        mDecorLayoutParams = new WindowManager.LayoutParams();
-        WindowManager.LayoutParams p = mDecorLayoutParams;
-        p.gravity = Gravity.TOP | Gravity.LEFT;
-        p.height = FrameLayout.LayoutParams.WRAP_CONTENT;
-        p.x = 0;
-        p.format = PixelFormat.TRANSLUCENT;
-        p.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
-        p.flags |= WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
-                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
-        p.token = null;
-        p.windowAnimations = 0; // android.R.style.DropDownAnimationDown;
     }
 
 
@@ -214,24 +163,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         });
     }
 
-
-    // Update the dynamic parts of mDecorLayoutParams
-    // Must be called with mAnchor != NULL.
-    private void updateFloatingWindowLayout() {
-        int[] anchorPos = new int[2];
-        mAnchor.getLocationOnScreen(anchorPos);
-
-        // we need to know the size of the controller so we can properly position it
-        // within its space
-        mDecor.measure(View.MeasureSpec.makeMeasureSpec(mAnchor.getWidth(), View.MeasureSpec.AT_MOST),
-                View.MeasureSpec.makeMeasureSpec(mAnchor.getHeight(), View.MeasureSpec.AT_MOST));
-
-        WindowManager.LayoutParams p = mDecorLayoutParams;
-        p.width = mAnchor.getWidth();
-        p.x = anchorPos[0] + (mAnchor.getWidth() - p.width) / 2;
-        p.y = anchorPos[1] + mAnchor.getHeight() - mDecor.getMeasuredHeight();
-    }
-
     // This is called whenever mAnchor's layout bound changes
     private final View.OnLayoutChangeListener mLayoutChangeListener =
             new View.OnLayoutChangeListener() {
@@ -240,10 +171,8 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
                                            int bottom, int oldLeft, int oldTop, int oldRight,
                                            int oldBottom) {
                     Log.d(TAG, "onSurfaceChanged  onLayoutChange: ");
-                    updateControllerLayoutParams();
-                    updateFloatingWindowLayout();
                     if (mShowing) {
-                        mWindowManager.updateViewLayout(mDecor, mDecorLayoutParams);
+                        updateControllerLayoutParams();
                     }
                 }
             };
@@ -283,7 +212,6 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             mAnchor.addOnLayoutChangeListener(mLayoutChangeListener);
         }
 
-        Log.d(TAG, "onSurfaceChanged  setAnchorView: ");
 
         FrameLayout.LayoutParams frameParams = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -391,6 +319,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         mThumImg = (ImageView) v.findViewById(R.id.thum_img);
         mForwardTxt = (AppCompatTextView) v.findViewById(R.id.txt_forward_time);
         mForwardTotalTxt = (AppCompatTextView) v.findViewById(R.id.txt_forward_total_time);
+        mBufferLoading = (LinearLayout) v.findViewById(R.id.ll_buffering);
         mFormatBuilder = new StringBuilder();
         mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
         llBottomController = (LinearLayout) v.findViewById(R.id.bottom_contr_ll);
@@ -479,8 +408,10 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             }
 
             disableUnsupportedButtons();
-            updateFloatingWindowLayout();
-            mWindowManager.addView(mDecor, mDecorLayoutParams);
+            if (mAnchor instanceof FrameLayout) {
+                ((FrameLayout) mAnchor).addView(this);
+            }
+
             mShowing = true;
         }
         updatePausePlay();
@@ -511,7 +442,10 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         if (mShowing) {
             try {
                 mHandler.removeMessages(SHOW_PROGRESS);
-                mWindowManager.removeView(mDecor);
+                if (mAnchor instanceof FrameLayout) {
+                    ((FrameLayout) mAnchor).removeView(this);
+                }
+
             } catch (IllegalArgumentException ex) {
                 Log.w("MediaController", "already removed");
             }
@@ -585,15 +519,12 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                Log.d(TAG, "onTouchEvent: -----B----down-------");
                 onControllerTouchDown(x, y);
                 break;
             case MotionEvent.ACTION_MOVE:
-                Log.d(TAG, "onTouchEvent: -----B----move-------");
                 onControllerTouchMove(x, y);
                 break;
             case MotionEvent.ACTION_UP:
-                Log.d(TAG, "onTouchEvent: -----B----up-------");
                 onControllerTouchUp();
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -907,17 +838,19 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         this.oritentionType = type;
     }
 
-    public void setOrientationListener(OrientationListener listener) {
+    public void setOrientationListener(IOrientationListener listener) {
         mlistener = listener;
     }
 
-    public void setWindowLightListener(LightListener listener) {
+
+    public void setWindowLightListener(ILightListener listener) {
         mLightListener = listener;
     }
 
-    public void setCloseListener(CloseListener listener) {
+    public void setCloseListener(ICloseListener listener) {
         mCloseListener = listener;
     }
+
 
     //设置亮度
     public void setLight(float brightness) {
@@ -1037,5 +970,10 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         mShowThumbnail = false;
         mThumImg.setVisibility(GONE);
     }
+
+    public void isBuffering(boolean bol) {
+        mBufferLoading.setVisibility(bol ? VISIBLE : GONE);
+    }
+
 
 }

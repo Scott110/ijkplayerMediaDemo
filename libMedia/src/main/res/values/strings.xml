@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">LibMedia</string>
     <string name="zero_clock">00:00</string>
+    <string name="not_wifi">您当前正在使用移动网络，继续播放将消耗流量</string>
+    <string name="not_wifi_confirm">继续播放</string>
+    <string name="no_net">当前找不到网络</string>
+    <string name="not_wifi_cancel">停止播放</string>
+    <string name="charge_hint">请注册登录后继续观看</string>
 </resources>

@@ -4,14 +4,21 @@
     <style name="SeekBarStyle">
         <item name="android:indeterminateOnly">false</item>
         <item name="android:focusable">true</item>
-        <item name="android:progressDrawable">@drawable/seekbar_layer</item>
-        <item name="android:indeterminateDrawable">@drawable/seekbar_layer</item>
+        <item name="android:progressDrawable">@drawable/vedio_seekbar_layer</item>
+        <item name="android:indeterminateDrawable">@drawable/vedio_seekbar_layer</item>
         <item name="android:thumb">@drawable/seekbar_thumb_selector</item>
         <item name="android:minHeight">3dp</item>
         <item name="android:maxHeight">3dp</item>
         <item name="android:paddingRight">5dp</item>
         <item name="android:paddingLeft">5dp</item>
     </style>
+
+
+    <style name="audio_SeekBarStyle" parent="SeekBarStyle">
+        <item name="android:progressDrawable">@drawable/audio_seekbar_layer</item>
+        <item name="android:indeterminateDrawable">@drawable/audio_seekbar_layer</item>
+    </style>
+
 
     <style name="Vertical_SeekBarStyle">
         <item name="android:indeterminateOnly">false</item>
@@ -40,6 +47,11 @@
         <item name="android:scaleType">centerCrop</item>
     </style>
 
+    <!--缓冲加载框样式-->
+    <style name="loading_progress_style" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:layout_width">30dp</item>
+        <item name="android:layout_height">30dp</item>
+    </style>
 
 </resources>
 

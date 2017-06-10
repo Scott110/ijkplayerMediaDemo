@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottom_contr_ll"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/default_audio_controller_bottom_height"
+    android:layout_height="@dimen/default_audio_height"
     android:background="@color/color_1FB288"
     android:gravity="center_vertical"
     android:orientation="horizontal">
@@ -15,15 +15,13 @@
         android:layout_marginLeft="11dp"
         android:background="@null"
         android:scaleType="center"
-        tools:src="@mipmap/icon_play_normal"
-        />
+        tools:src="@mipmap/icon_play_normal" />
 
     <View
         android:layout_width="1dp"
         android:layout_height="23dp"
-        android:background="#10946E"
         android:layout_marginLeft="10dp"
-        />
+        android:background="#10946E" />
 
     <TextView
         android:id="@+id/current_time_tv"
@@ -36,7 +34,7 @@
 
     <SeekBar
         android:id="@+id/progress_sb"
-        style="@style/SeekBarStyle"
+        style="@style/audio_SeekBarStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
@@ -53,9 +51,8 @@
     <View
         android:layout_width="1dp"
         android:layout_height="23dp"
-        android:background="#10946E"
         android:layout_marginRight="10dp"
-        />
+        android:background="#10946E" />
 
     <ImageButton
         android:id="@+id/close_btn"
@@ -64,5 +61,5 @@
         android:layout_marginRight="11dp"
         android:background="@null"
         android:scaleType="center"
-        android:src="@mipmap/ic_close" />
+        android:src="@mipmap/icon_close" />
 </LinearLayout>

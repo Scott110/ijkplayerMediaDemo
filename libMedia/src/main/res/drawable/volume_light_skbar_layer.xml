@@ -2,8 +2,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
         <shape>
-            <solid android:color="@color/colorPrimaryDark" />
-            <corners android:radius="1dp" />
+            <solid android:color="@color/color_white" />
+            <corners android:radius="@dimen/default_progress_radius" />
         </shape>
     </item>
 
@@ -13,6 +13,7 @@
             android:gravity="left">
             <shape>
                 <solid android:color="@color/color_1FB288" />
+                <corners android:radius="@dimen/default_progress_radius" />
             </shape>
         </clip>
     </item>
