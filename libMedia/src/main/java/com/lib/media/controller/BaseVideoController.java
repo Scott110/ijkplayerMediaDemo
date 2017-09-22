@@ -124,6 +124,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
     //视频高度
     private int videoHeight;
     private LinearLayout mBufferLoading;
+    private long slideProgressPosition;
 
     public BaseVideoController(Context cxt, AttributeSet attrs) {
         super(cxt, attrs);
@@ -747,6 +748,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
             // we will post one of these messages to the queue again and
             // this ensures that there will be exactly one message queued up.
             mHandler.removeMessages(SHOW_PROGRESS);
+            slideProgressPosition=0;
         }
 
         @Override
@@ -759,7 +761,9 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
 
             long duration = mPlayer.getDuration();
             long newposition = (duration * progress) / 1000L;
-            mPlayer.seekTo((int) newposition);
+            //mPlayer.seekTo((int) newposition);//修改拖动不准确的问题
+            slideProgressPosition=newposition;
+
             if (mCurrentTime != null)
                 mCurrentTime.setText(stringForTime((int) newposition));
         }
@@ -767,6 +771,7 @@ public class BaseVideoController extends FrameLayout implements IMediaViewContro
         @Override
         public void onStopTrackingTouch(SeekBar bar) {
             mDragging = false;
+            mPlayer.seekTo((int) slideProgressPosition);
             setProgress();
             updatePausePlay();
             show(sDefaultTimeout);

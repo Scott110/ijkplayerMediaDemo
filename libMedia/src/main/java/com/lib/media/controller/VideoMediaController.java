@@ -3,6 +3,7 @@ package com.lib.media.controller;
 import android.app.Activity;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import com.lib.media.ijkplayer.IMediaController;
@@ -25,5 +26,10 @@ public class VideoMediaController extends BaseVideoController implements IMediaC
     @Override
     public void showOnce(View view) {
 
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
     }
 }

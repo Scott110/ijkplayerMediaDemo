@@ -3,22 +3,17 @@ package com.scott.demo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.FrameLayout;
 
 import com.lib.media.constant.Constant;
-import com.lib.media.controller.ImAudioMediaController;
 import com.lib.media.ijkplayer.IMediaController;
 import com.lib.media.ijkplayer.IjkVideoView;
 import com.lib.media.listener.ICloseListener;
-import com.lib.media.listener.ILightListener;
-import com.lib.media.listener.IOrientationListener;
 import com.lib.media.util.LightUtil;
 import com.lib.media.util.OrientationUtil;
 
@@ -56,8 +51,14 @@ public class MainActivity extends AppCompatActivity implements ICloseListener {
                 //videoView.setVideoURI(Uri.parse(url1));
                 //FrameLayout fragment = (FrameLayout) videoView.getParent();
                 //fragment.removeViewAt(1);
-                videoView.restorAll();
-                initAudio();
+                //videoView.restorAll();
+                //initAudio();
+                videoView.setMediaControllerInfo(MainActivity.this, Constant.MEDIA_TYPE_VIDEO, MainActivity.this);
+                //videoView.isCharge(true);
+                //videoView.setMaxPlayTime(5 * 60 * 1000);
+                String url = "http://medbigbang-1.oss-cn-beijing.aliyuncs.com/ZHU%20-%20Faded.m4a";
+                //String url = "http://cdn.course1.1dabang.cn/087/all/index.m3u8";
+                videoView.setVideoURI(Uri.parse(url));
             }
         });
 
@@ -67,8 +68,8 @@ public class MainActivity extends AppCompatActivity implements ICloseListener {
 
 
         //git initImAudio();
-        //initVideo();
-        initAudio();
+        initVideo();
+        //initAudio();
 
         //本地格式
         //String url = "/storage/emulated/0/Download/test.h264";
@@ -93,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements ICloseListener {
         videoView.setMediaControllerInfo(MainActivity.this, Constant.MEDIA_TYPE_VIDEO, this);
         //videoView.isCharge(true);
         //videoView.setMaxPlayTime(5 * 60 * 1000);
+        //String url = "http://medbigbang-1.oss-cn-beijing.aliyuncs.com/ZHU%20-%20Faded.m4a";
         String url = "http://cdn.course1.1dabang.cn/087/all/index.m3u8";
         videoView.setVideoURI(Uri.parse(url));
     }
@@ -106,8 +108,9 @@ public class MainActivity extends AppCompatActivity implements ICloseListener {
         //videoView.setMediaType(Constant.MEDIA_TYPE_AUDIO);
         //String url = "http://o6wf52jln.bkt.clouddn.com/演员.mp3";
         //String url = "/storage/emulated/0/Android/data/com.zbsd.ydb/files/recoder/1497053184182.amr";
-        String url = "https://cdn-files.1dabang.cn/936523B4-361B-4D8A-B476-89249AA47743.amr";
+        //String url = "https://cdn-files.1dabang.cn/936523B4-361B-4D8A-B476-89249AA47743.amr";
         //String url = "http://medbigbang-1.oss-cn-beijing.aliyuncs.com/936523B4-361B-4D8A-B476-89249AA47743.amr";
+        String url = "http://medbigbang-1.oss-cn-beijing.aliyuncs.com/368124caa14d046fcba273e89632c82b.amr";
         videoView.setVideoURI(Uri.parse(url));
         videoView.start();
     }
@@ -149,7 +152,9 @@ public class MainActivity extends AppCompatActivity implements ICloseListener {
 
     @Override
     public void closed() {
-        videoView.release(true);
+        //videoView.release(true);
+        //videoView.restorAll();
+        videoView.stopPlayback();
     }
 
 

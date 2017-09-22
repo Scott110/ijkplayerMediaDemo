@@ -865,17 +865,17 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         float y = ev.getY();
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (mMediaController instanceof BaseVideoController) {
+                if (mMediaController != null && mMediaController instanceof BaseVideoController) {
                     mMediaController.onControllerTouchDown(x, y);
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (mMediaController instanceof BaseVideoController) {
+                if (mMediaController != null && mMediaController instanceof BaseVideoController) {
                     mMediaController.onControllerTouchMove(x, y);
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                if (mMediaController instanceof BaseVideoController) {
+                if (mMediaController != null && mMediaController instanceof BaseVideoController) {
                     mMediaController.onControllerTouchUp();
                 }
                 break;
@@ -935,6 +935,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     }
 
     private void toggleMediaControlsVisiblity() {
+        if (mMediaController == null) return;
         if (mMediaController.isShowing()) {
             mMediaController.hide();
         } else {
@@ -1031,6 +1032,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         if (isInPlaybackState()) {
             mSeekStartTime = System.currentTimeMillis();
             mMediaPlayer.seekTo(msec);
+            Log.d(TAG, "seekTo: ____拖动位置ijkVideo______"+msec);
             mSeekWhenPrepared = 0;
         } else {
             mSeekWhenPrepared = msec;
@@ -1406,19 +1408,15 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     //释放所有的多媒体信息
     public void restorAll() {
         release(true);
+        this.removeAllViews();
         FrameLayout frameLayout = (FrameLayout) this.getParent();
         if (frameLayout != null) {
-            int childSize = frameLayout.getChildCount();
-            if (childSize > 1) {
-                for (int i = 1; i < childSize; i++) {
-                    frameLayout.removeViewAt(i);
-                }
-            }
-
-            mIsCharge = false;
-            mMaxPlayTime = 0;
-            isAllowPlay = true;
+            frameLayout.removeAllViews();
         }
+        mMediaController = null;
+        mIsCharge = false;
+        mMaxPlayTime = 0;
+        isAllowPlay = true;
     }
 
     /**
@@ -1426,6 +1424,24 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      */
     public void stopPlayback() {
         release(true);
+        FrameLayout frameLayout = (FrameLayout) this.getParent();
+        if (frameLayout != null) {
+            int childSize = frameLayout.getChildCount();
+            if (childSize > 1) {
+                for (int i = childSize; i > 1; i--) {
+                    try {
+                        frameLayout.removeViewAt(i);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        mMediaController = null;
+        mIsCharge = false;
+        mMaxPlayTime = 0;
+        isAllowPlay = true;
+        initRenders();
         clearScreenOn();
     }
 
